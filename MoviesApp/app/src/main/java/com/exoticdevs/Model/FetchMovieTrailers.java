@@ -4,10 +4,14 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 
 import com.exoticdevs.Data.MoviesContract;
+import com.exoticdevs.Fragments.DetailFragment;
 import com.exoticdevs.moviesapp.BuildConfig;
+import com.exoticdevs.moviesapp.R;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,13 +31,12 @@ import java.util.Vector;
 public class FetchMovieTrailers  extends AsyncTask<String, Void, Void>  {
 
     private final Context mContext;
-    private long mDbMovieID;
+    private long mApiMovieID;
 
     private final String LOG_TAG = FetchMovieTrailers.class.getSimpleName();
 
-    public FetchMovieTrailers(Context context, long dbMovieID ) {
+    public FetchMovieTrailers(Context context) {
         mContext = context;
-        mDbMovieID = dbMovieID;
     }
 
     /**
@@ -58,14 +61,24 @@ public class FetchMovieTrailers  extends AsyncTask<String, Void, Void>  {
         JSONObject trailersJson = new JSONObject(moviesJsonStr);
         JSONArray trailersArray = trailersJson.getJSONArray(MT_LIST);
 
+            if(trailersArray.length() == 0){
+                FragmentManager fragmentManager = ((FragmentActivity) mContext).getSupportFragmentManager();
+                DetailFragment detailFragment = (DetailFragment) fragmentManager.findFragmentById(R.id.fragmentDetail);
+                if(detailFragment != null) {
+                    detailFragment.noTrailersAvailable();
+                }
+                return;
+            }
+
         // clear movie trailers at certain movieID to add its new trailers
-        String[] selectionArgs = new String[]{String.valueOf(mDbMovieID)};
         String where = MoviesContract.TrailerEntry.TABLE_NAME+
-                "." + MoviesContract.TrailerEntry.COLUMN_MOVIE_KEY + " = ? ";
+                "." + MoviesContract.TrailerEntry.COLUMN_MOVIE_ID + " = ? ";
+
+        String[] selectionArgs = new String[]{String.valueOf(mApiMovieID)};
 
         int rowId =  mContext.getContentResolver().delete(MoviesContract.TrailerEntry.CONTENT_URI,
                 where, selectionArgs);
-        Log.v(LOG_TAG, "deleted " + rowId);
+            Log.v(LOG_TAG, "deleted " + rowId + "where id = " + mApiMovieID);
 
         // Insert the new Trailers information into the database
         Vector<ContentValues> cVVector = new Vector<ContentValues>(trailersArray.length());
@@ -88,7 +101,7 @@ public class FetchMovieTrailers  extends AsyncTask<String, Void, Void>  {
             type = trailerObj.getString(MT_TYPE);
 
             ContentValues contentValue = new ContentValues();
-            contentValue.put(MoviesContract.TrailerEntry.COLUMN_MOVIE_KEY, mDbMovieID);
+            contentValue.put(MoviesContract.TrailerEntry.COLUMN_MOVIE_ID, mApiMovieID);
             contentValue.put(MoviesContract.TrailerEntry.COLUMN_TRAILER_ID, trailerId);
             contentValue.put(MoviesContract.TrailerEntry.COLUMN_KEY, key);
             contentValue.put(MoviesContract.TrailerEntry.COLUMN_NAME, name);
@@ -120,6 +133,8 @@ public class FetchMovieTrailers  extends AsyncTask<String, Void, Void>  {
         if (params.length == 0) {
             return null;
         }
+
+        mApiMovieID = Long.parseLong(params[0]);
 
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
@@ -196,5 +211,6 @@ public class FetchMovieTrailers  extends AsyncTask<String, Void, Void>  {
         // This will only happen if there was an error getting or parsing the trailers.
         return null;
     }
+
 }
 

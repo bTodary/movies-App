@@ -16,7 +16,7 @@ import com.exoticdevs.moviesapp.R;
 /**
  * Created by mac on 4/13/16.
  */
-public class TrailersAdapter  extends RecyclerView.Adapter<TrailersAdapter.ViewHolder> {
+public class TrailersAdapter extends RecyclerView.Adapter<TrailersAdapter.ViewHolder> {
 
     private Cursor mCursor;
     final private Context mContext;

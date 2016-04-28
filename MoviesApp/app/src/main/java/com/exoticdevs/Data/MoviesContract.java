@@ -50,11 +50,19 @@ public class MoviesContract {
             return CONTENT_URI.buildUpon().appendPath(sort).build();
         }
 
-        public static String getSortSettingFromUri(Uri uri) {
-            // 1 is the index to return the element at the specified sort.
+        public static String getLastPathFromUri(Uri uri) {
+            // 1 is the index to return the element at the specified argument.
             return uri.getPathSegments().get(1);
         }
 
+        public static Uri buildMovieAtSortWithId(String sort, long id) {
+            return CONTENT_URI.buildUpon().appendPath(sort)
+                    .appendPath(Long.toString(id)).build();
+        }
+
+        public static long getIdFromUri(Uri uri) {
+            return Long.parseLong(uri.getPathSegments().get(2));
+        }
     }
 
     /* Inner class that defines the table trailers of the movie table */
@@ -62,8 +70,8 @@ public class MoviesContract {
 
         public static final String TABLE_NAME = "trailer";
 
-        // Column with the foreign key into the movie table.
-        public static final String COLUMN_MOVIE_KEY = "movie_id";
+        // movie id as returned by API and also the foreign key into the movie table.
+        public static final String COLUMN_MOVIE_ID = "movieId";
 
         // trailer id as returned by API
         public static final String COLUMN_TRAILER_ID = "trailer_id";
@@ -71,7 +79,6 @@ public class MoviesContract {
         public static final String COLUMN_NAME = "name";
         public static final String COLUMN_SIZE = "size";
         public static final String COLUMN_TYPE = "type";
-
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_TRAILER).build();
@@ -84,6 +91,12 @@ public class MoviesContract {
         public static Uri buildTrailerUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
+
+        public static String getIdFromUri(Uri uri) {
+            // 1 is the index to return the element at the specified sort.
+            return uri.getPathSegments().get(1);
+        }
+
     }
 
     /* Inner class that defines the table reviews of the movie table */
@@ -91,23 +104,37 @@ public class MoviesContract {
 
         public static final String TABLE_NAME = "review";
 
-        // Column with the foreign key into the movie table.
-        public static final String COLUMN_MOVIE_KEY = "movie_id";
+        // movie id as returned by API
+        public static final String COLUMN_MOVIE_ID = "movieId";
 
         // review id as returned by API
         public static final String COLUMN_REVIEW_ID = "review_id";
         public static final String COLUMN_AUTHOR = "author";
         public static final String COLUMN_CONTENT = "content";
         public static final String COLUMN_URL = "url";
+
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_REVIEW).build();
+
+        public static final String CONTENT_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_REVIEW;
+        public static final String CONTENT_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_REVIEW;
+
+        public static Uri buildReviewUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
+        public static String getIdFromUri(Uri uri) {
+            // 1 is the index to return the element at the specified sort.
+            return uri.getPathSegments().get(1);
+        }
     }
 
     /* Inner class that defines the table favorite of the movie table */
     public static final class FavEntry implements BaseColumns {
 
         public static final String TABLE_NAME = "favorite";
-
-        // Column with the foreign key into the movie table.
-        public static final String COLUMN_MOVIE_KEY = "movie_id";
 
         // movie id as returned by API
         public static final String COLUMN_MOVIE_ID = "movieId";
@@ -127,6 +154,11 @@ public class MoviesContract {
 
         public static Uri buildFavUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
+        public static String getIdFromUri(Uri uri) {
+            // 1 is the index to return the element at the specified sort.
+            return uri.getPathSegments().get(1);
         }
     }
 }

@@ -61,12 +61,13 @@ public class FetchMovies extends AsyncTask<Void, Void, Void> {
 
         JSONObject movieObj;
 
-        // clear movie table at certain sort to add new data of same sort which is returned from the server
-            String[] selectionArgs = new String[]{mSort};
+        // clear movie table at certain sort to add new data which is returned from the server
             String where = MoviesContract.MovieEntry.TABLE_NAME+
                             "." + MoviesContract.MovieEntry.COLUMN_SORT + " = ? ";
 
-           int rowId =  mContext.getContentResolver().delete(MoviesContract.MovieEntry.CONTENT_URI,
+            String[] selectionArgs = new String[]{mSort};
+
+            int rowId =  mContext.getContentResolver().delete(MoviesContract.MovieEntry.CONTENT_URI,
                         where, selectionArgs);
             Log.v(LOG_TAG, "deleted " + rowId + " " + mSort);
 

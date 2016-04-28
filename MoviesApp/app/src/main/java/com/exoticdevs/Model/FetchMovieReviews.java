@@ -1,5 +1,6 @@
 package com.exoticdevs.Model;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -7,9 +8,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
 
-import com.exoticdevs.Adapters.ReviewsAdapter;
-import com.exoticdevs.AppClasses.Review;
-import com.exoticdevs.Data.MoviesDbManager;
+import com.exoticdevs.Data.MoviesContract;
 import com.exoticdevs.Fragments.DetailFragment;
 import com.exoticdevs.moviesapp.BuildConfig;
 import com.exoticdevs.moviesapp.R;
@@ -24,24 +23,20 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
+import java.util.Vector;
 
 /**
  * Created by mac on 4/13/16.
  */
-public class FetchMovieReviews extends AsyncTask<Integer, Void, ArrayList<Review>> {
+public class FetchMovieReviews extends AsyncTask<String, Void, Void> {
 
     private final Context mContext;
-    private ReviewsAdapter mReviewsAdapter;
-    private long mDbMovieID;
-    private MoviesDbManager moviesDbManager;
+    private long mApiMovieID;
 
     private final String LOG_TAG = FetchMovieReviews.class.getSimpleName();
 
-    public FetchMovieReviews(Context context, ReviewsAdapter reviewsAdapter, long dbMovieID ) {
+    public FetchMovieReviews(Context context) {
         mContext = context;
-        mReviewsAdapter = reviewsAdapter;
-        mDbMovieID = dbMovieID;
     }
 
 
@@ -52,7 +47,7 @@ public class FetchMovieReviews extends AsyncTask<Integer, Void, ArrayList<Review
      *constructor takes the JSON string and converts it
      * into an Object hierarchy.
      */
-    private ArrayList<Review> getMovieReviewsDataFromJson(String moviesJsonStr)
+    private void getMovieReviewsDataFromJson(String moviesJsonStr)
             throws JSONException {
 
         // These are the names of the JSON objects that need to be extracted.
@@ -62,45 +57,81 @@ public class FetchMovieReviews extends AsyncTask<Integer, Void, ArrayList<Review
         final String MR_CONTENT = "content";
         final String MR_URL = "url";
 
-        JSONObject trailersJson = new JSONObject(moviesJsonStr);
-        JSONArray trailersArray = trailersJson.getJSONArray(MR_LIST);
+        try{
 
-        ArrayList<Review> resultStrs = new ArrayList<>();
-        moviesDbManager = new MoviesDbManager(mContext);
+        JSONObject reviewsJson = new JSONObject(moviesJsonStr);
+        JSONArray reviewsArray = reviewsJson.getJSONArray(MR_LIST);
 
-        // clear movie's reviews to add new reviews
-        moviesDbManager.clearReviewTableAtMovieId(mDbMovieID);
-        Log.v(LOG_TAG, "ReviewsCount before " + moviesDbManager.getMovieReviewsCountAtMovieID(mDbMovieID));
+            if(reviewsArray.length() == 0){
+                FragmentManager fragmentManager = ((FragmentActivity) mContext).getSupportFragmentManager();
+                DetailFragment detailFragment = (DetailFragment) fragmentManager.findFragmentById(R.id.fragmentDetail);
+                if(detailFragment != null) {
+                    detailFragment.noReviewsAvailable();
+                }
+                return;
+            }
 
-        for(int i = 0; i < trailersArray.length(); i++) {
+            // clear movie reviews at certain movieID to add its new reviews
+            String where = MoviesContract.ReviewEntry.TABLE_NAME+
+                    "." + MoviesContract.ReviewEntry.COLUMN_MOVIE_ID + " = ? ";
+
+            String[] selectionArgs = new String[]{String.valueOf(mApiMovieID)};
+
+            int rowId =  mContext.getContentResolver().delete(MoviesContract.ReviewEntry.CONTENT_URI,
+                    where, selectionArgs);
+            Log.v(LOG_TAG, "deleted " + rowId + "where id = " + mApiMovieID);
+
+            // Insert the new reviews information into the database
+            Vector<ContentValues> cVVector = new Vector<ContentValues>(reviewsArray.length());
+
+        for(int i = 0; i < reviewsArray.length(); i++) {
 
             String reviewId;
             String author;
             String content;
             String url;
 
-            // Get the JSON object representing the movie's trailer
-            JSONObject trailerObj = trailersArray.getJSONObject(i);
+            // Get the JSON object representing the movie's review
+            JSONObject reviewObj = reviewsArray.getJSONObject(i);
 
-            reviewId = trailerObj.getString(MR_ID);
-            author = trailerObj.getString(MR_AUTHOR);
-            content = trailerObj.getString(MR_CONTENT);
-            url = trailerObj.getString(MR_URL);
+            reviewId = reviewObj.getString(MR_ID);
+            author = reviewObj.getString(MR_AUTHOR);
+            content = reviewObj.getString(MR_CONTENT);
+            url = reviewObj.getString(MR_URL);
 
-            resultStrs.add(new Review(mDbMovieID, reviewId, author,content, url));
-            long mDbReviewID =  moviesDbManager.insertMovieReviews(mDbMovieID, reviewId, author, content, url);
+            ContentValues contentValue = new ContentValues();
+            contentValue.put(MoviesContract.ReviewEntry.COLUMN_MOVIE_ID, mApiMovieID);
+            contentValue.put(MoviesContract.ReviewEntry.COLUMN_REVIEW_ID, reviewId);
+            contentValue.put(MoviesContract.ReviewEntry.COLUMN_AUTHOR, author);
+            contentValue.put(MoviesContract.ReviewEntry.COLUMN_CONTENT, content);
+            contentValue.put(MoviesContract.ReviewEntry.COLUMN_URL, url);
+
+            cVVector.add(contentValue);
         }
-        Log.v(LOG_TAG, "ReviewsCount after " + moviesDbManager.getMovieReviewsCountAtMovieID(mDbMovieID));
-        return resultStrs;
+            int inserted = 0;
+            // add to database
+            if ( cVVector.size() > 0 ) {
+                ContentValues[] cvArray = new ContentValues[cVVector.size()];
+                cVVector.toArray(cvArray);
+                inserted = mContext.getContentResolver().bulkInsert(MoviesContract.ReviewEntry.CONTENT_URI, cvArray);
+            }
+
+            Log.d(LOG_TAG, "FetchReviews Complete. " + inserted + " Inserted");
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, e.getMessage(), e);
+            e.printStackTrace();
+        }
     }
 
     @Override
-    protected ArrayList<Review> doInBackground(Integer... params) {
+    protected Void doInBackground(String... params) {
 
         // If there's no movie id, there's nothing to look up.  Verify size of params.
         if (params.length == 0) {
             return null;
         }
+
+        mApiMovieID = Long.parseLong(params[0]);
 
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
@@ -168,7 +199,7 @@ public class FetchMovieReviews extends AsyncTask<Integer, Void, ArrayList<Review
         }
 
         try {
-            return getMovieReviewsDataFromJson(reviewsJsonStr);
+            getMovieReviewsDataFromJson(reviewsJsonStr);
         } catch (JSONException e) {
             Log.e(LOG_TAG, e.getMessage(), e);
             e.printStackTrace();
@@ -176,27 +207,6 @@ public class FetchMovieReviews extends AsyncTask<Integer, Void, ArrayList<Review
 
         // This will only happen if there was an error getting or parsing the reviews.
         return null;
-    }
-
-    @Override
-    protected void onPostExecute(ArrayList<Review> result) {
-
-        if (result != null && mReviewsAdapter != null) {
-            mReviewsAdapter.clear();
-
-            if(result.size() == 0){
-                FragmentManager fragmentManager = ((FragmentActivity) mContext).getSupportFragmentManager();
-                DetailFragment detailFragment = (DetailFragment) fragmentManager.findFragmentById(R.id.fragmentDetail);
-                if(null != detailFragment) {
-                    detailFragment.noReviewsAvailable();
-                }
-                return;
-            }
-
-            for(Review review : result) {
-                mReviewsAdapter.add(review);
-            }
-        }
     }
 }
 

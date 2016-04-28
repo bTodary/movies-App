@@ -46,44 +46,39 @@ public class MoviesDbHelper extends SQLiteOpenHelper{
         final String SQL_CREATE_TRAILER_TABLE = "CREATE TABLE " + TrailerEntry.TABLE_NAME + " (" +
                 TrailerEntry._ID + " INTEGER PRIMARY KEY," +
                 // the ID of the movie entry associated with this trailer data
-                TrailerEntry.COLUMN_MOVIE_KEY + " INTEGER NOT NULL, " +
+                TrailerEntry.COLUMN_MOVIE_ID + " INTEGER NOT NULL, " +
                 TrailerEntry.COLUMN_TRAILER_ID + " INTEGER NOT NULL, " +
                 TrailerEntry.COLUMN_KEY + " TEXT NOT NULL, " +
                 TrailerEntry.COLUMN_NAME + " TEXT NOT NULL, " +
                 TrailerEntry.COLUMN_SIZE + " INTEGER NOT NULL, " +
                 TrailerEntry.COLUMN_TYPE + " TEXT NOT NULL, " +
                 // Set up the movie column as a foreign key to movie table.
-                " FOREIGN KEY (" + TrailerEntry.COLUMN_MOVIE_KEY + ") REFERENCES "+
-                MovieEntry.TABLE_NAME + " (" + MovieEntry._ID + " ) " +
+                " FOREIGN KEY (" + TrailerEntry.COLUMN_MOVIE_ID + ") REFERENCES "+
+                MovieEntry.TABLE_NAME + " (" + MovieEntry.COLUMN_MOVIE_ID + " ) " +
                 ");";
 
         final String SQL_CREATE_REVIEW_TABLE = "CREATE TABLE " + ReviewEntry.TABLE_NAME + " (" +
                 ReviewEntry._ID + " INTEGER PRIMARY KEY," +
                 // the ID of the movie entry associated with this review data
-                ReviewEntry.COLUMN_MOVIE_KEY + " INTEGER NOT NULL, " +
+                TrailerEntry.COLUMN_MOVIE_ID + " INTEGER NOT NULL, " +
                 ReviewEntry.COLUMN_REVIEW_ID + " TEXT NOT NULL, " +
                 ReviewEntry.COLUMN_AUTHOR + " TEXT NOT NULL, " +
                 ReviewEntry.COLUMN_CONTENT + " TEXT NOT NULL, " +
                 ReviewEntry.COLUMN_URL + " TEXT NOT NULL, " +
                 // Set up the movie column as a foreign key to movie table.
-                " FOREIGN KEY (" + ReviewEntry.COLUMN_MOVIE_KEY + ") REFERENCES " +
-                MovieEntry.TABLE_NAME + " (" + MovieEntry._ID + ") " +
+                " FOREIGN KEY (" + ReviewEntry.COLUMN_MOVIE_ID + ") REFERENCES " +
+                MovieEntry.TABLE_NAME + " (" + MovieEntry.COLUMN_MOVIE_ID + ") " +
                 " );";
 
         // Create a table to hold movies.
         final String SQL_CREATE_FAV_TABLE = "CREATE TABLE " + FavEntry.TABLE_NAME + " (" +
                 FavEntry._ID + " INTEGER PRIMARY KEY," +
-                 // the ID of the movie entry associated with this favorite data
-                FavEntry.COLUMN_MOVIE_KEY + " INTEGER NOT NULL, " +
                 FavEntry.COLUMN_MOVIE_ID + " INTEGER NOT NULL, " +
                 FavEntry.COLUMN_POSTER + " TEXT NOT NULL, " +
                 FavEntry.COLUMN_TITLE + " TEXT NOT NULL, " +
                 FavEntry.COLUMN_RELEASE_DATE + " TEXT NOT NULL, " +
                 FavEntry.COLUMN_OVERVIEW + " TEXT NOT NULL, " +
                 FavEntry.COLUMN_VOTE_AVERAGE + " REAL NOT NULL " +
-//                // Set up the movie column as a foreign key to movie table.
-//                " FOREIGN KEY (" + FavEntry.COLUMN_MOVIE_KEY + ") REFERENCES " +
-//                MovieEntry.TABLE_NAME + " (" + MovieEntry._ID + ") " +
                 " );";
 
         sqLiteDatabase.execSQL(SQL_CREATE_MOVIE_TABLE);

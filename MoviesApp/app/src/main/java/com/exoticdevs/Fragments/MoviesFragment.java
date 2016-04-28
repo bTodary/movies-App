@@ -30,17 +30,16 @@ import com.exoticdevs.moviesapp.R;
 public class MoviesFragment extends Fragment  implements LoaderManager.LoaderCallbacks<Cursor>{
 
     String LOG_TAG = MoviesFragment.class.getName();
-    private RecyclerView mMovies_grid;
-    private boolean mIsConnected, mGotPopular, mGotRated;
+    private RecyclerView mMovies_rv;
+    private boolean mIsConnected;
     private static boolean mTwoPane = true;
     private ProgressBar mProgressBar;
     private FragmentData iFragmentData;
     public static final String ARG_MOVIE_SORT = "sort";
     private String mSort;
     private MoviesAdapter mMoviesAdapter;
-    private static final int POPULAR_LOADER = 0;
-    private static final int RATED_LOADER = 1;
-    private static final int FAV_LOADER = 2;
+    private static final int MOVIES_LOADER = 0;
+    private static final int FAV_LOADER = 1;
 
     public MoviesFragment() {
     }
@@ -68,7 +67,15 @@ public class MoviesFragment extends Fragment  implements LoaderManager.LoaderCal
 
     private void updateMovies() {
         mIsConnected = ConnectionDetector.isConnectingToInternet(getActivity());
-//
+
+        if(mTwoPane){
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            mSort = prefs.getString(getActivity().getString(R.string.pref_sort_key),
+                    getActivity().getString(R.string.pref_sort_default));
+        }else{
+            mSort = getArguments().getString(ARG_MOVIE_SORT);
+        }
+
 //        Cursor cursor = getActivity().getContentResolver().query(
 //                MoviesContract.MovieEntry.CONTENT_URI,
 //                null, // leaving "columns" null just returns all the columns.
@@ -78,7 +85,7 @@ public class MoviesFragment extends Fragment  implements LoaderManager.LoaderCal
 //        );
 //        Log.v(LOG_TAG, "movies table " + cursor.getCount());
 //
-
+//
 //        Uri moviesUri = MoviesContract.MovieEntry.buildMovieWithSortUri(mSort);
 //
 //        Cursor cursor2 = getActivity().getContentResolver().query(
@@ -90,41 +97,20 @@ public class MoviesFragment extends Fragment  implements LoaderManager.LoaderCal
 //        );
 //
 //        Log.v(LOG_TAG,"movies table at sort "  + cursor2.getCount() + " " + mSort);
-        if(mTwoPane){
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            mSort = prefs.getString(getActivity().getString(R.string.pref_sort_key),
-                    getActivity().getString(R.string.pref_sort_default));
-        }else{
-            mSort = getArguments().getString(ARG_MOVIE_SORT);
-        }
+
 
         if (mSort.equals(getActivity().getString(R.string.pref_sort_favorite))) {
             mProgressBar.setVisibility(View.GONE);
-            getLoaderManager().initLoader(FAV_LOADER, null, this);
+            initLoader(FAV_LOADER, null, this, getLoaderManager());
 
         } else {
             if (mIsConnected) {
-                if(mSort.equals(getString(R.string.pref_sort_popularity))) {
-                    if(mGotPopular){
-                        getLoaderManager().initLoader(POPULAR_LOADER, null, this);
-                    }else{
-                        fetchMoviesFromServer();
-                    }
-                }else if(mSort.equals(getString(R.string.pref_sort_highestRated))) {
-                    if(mGotRated){
-                        getLoaderManager().initLoader(RATED_LOADER, null, this);
-                    }else{
-                        fetchMoviesFromServer();
-                    }
-                }
+                mProgressBar.setVisibility(View.VISIBLE);
+                 fetchMoviesFromServer();
 
             } else {
-                if(mSort.equals(getString(R.string.pref_sort_popularity))) {
-                 getLoaderManager().initLoader(POPULAR_LOADER, null, this);
+                mProgressBar.setVisibility(View.GONE);
 
-                }else if(mSort.equals(getString(R.string.pref_sort_highestRated))) {
-                 getLoaderManager().initLoader(RATED_LOADER, null, this);
-                }
                 Snackbar snackbar = Snackbar
                         .make(getView(), getActivity().getResources().getString(R.string.couldNotSync), Snackbar.LENGTH_LONG)
                         .setAction(getActivity().getString(R.string.retry), new View.OnClickListener() {
@@ -135,6 +121,7 @@ public class MoviesFragment extends Fragment  implements LoaderManager.LoaderCal
                         });
                 snackbar.show();
             }
+            initLoader(MOVIES_LOADER, null, this, getLoaderManager());
         }
     }
 
@@ -145,12 +132,16 @@ public class MoviesFragment extends Fragment  implements LoaderManager.LoaderCal
         View rootView = inflater.inflate(R.layout.fragment_movies, container, false);
 
         // Get a reference to the GridView, and attach this adapter to it.
-        mMovies_grid = (RecyclerView) rootView.findViewById(R.id.movies_grid);
+        mMovies_rv = (RecyclerView) rootView.findViewById(R.id.movies_grid);
         mProgressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
 
         mMoviesAdapter = new MoviesAdapter(getActivity(), null);
 
-        mMovies_grid.setLayoutManager(new GridLayoutManager(mMovies_grid.getContext(), 2));
+        if(mTwoPane) {
+            mMovies_rv.setLayoutManager(new GridLayoutManager(mMovies_rv.getContext(), 3));
+        }else{
+            mMovies_rv.setLayoutManager(new GridLayoutManager(mMovies_rv.getContext(), 2));
+        }
 
         mMoviesAdapter = new MoviesAdapter(getActivity(), new MoviesAdapter.MoviestAdapterOnClickHandler() {
             @Override
@@ -168,19 +159,39 @@ public class MoviesFragment extends Fragment  implements LoaderManager.LoaderCal
                                     cursor.getLong(cursor.getColumnIndex(MoviesContract.FavEntry._ID))));
 
                         } else {
-                            detailIntent.setData(MoviesContract.MovieEntry.buildMovieUri(
+
+                            detailIntent.setData(MoviesContract.MovieEntry.buildMovieAtSortWithId(mSort,
                                     cursor.getLong(cursor.getColumnIndex(MoviesContract.MovieEntry._ID))));
+
+//                            String id = cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry._ID));
+//                            String poster = cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_POSTER));
+//                            String title = cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_TITLE));
+//                            String overview = cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_OVERVIEW));
+//                            String releaseDate = cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_RELEASE_DATE));
+//                            String voteAverage = cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_VOTE_AVERAGE));
+//
+//                            detailIntent.putExtra("id", id);
+//                            detailIntent.putExtra("poster", poster);
+//                            detailIntent.putExtra("title", title);
+//                            detailIntent.putExtra("overview", overview);
+//                            detailIntent.putExtra("releaseDate", releaseDate);
+//                            detailIntent.putExtra("voteAverage", voteAverage);
+//                            detailIntent.putExtra("mTwoPane", false);
+
                         }
+                        detailIntent.putExtra(DetailActivity.SORT_ARG, mSort);
                         startActivity(detailIntent);
                     }
                 } else {
-                    //  tell the fragment to update
-                    iFragmentData.updateData(cursor);
+                    if (cursor != null) {
+                        //  tell the detail fragment to update
+                        iFragmentData.updateData(cursor, mSort);
+                    }
                 }
             }
         });
 
-        mMovies_grid.setAdapter(mMoviesAdapter);
+        mMovies_rv.setAdapter(mMoviesAdapter);
 
         return rootView;
     }
@@ -188,13 +199,6 @@ public class MoviesFragment extends Fragment  implements LoaderManager.LoaderCal
     private void fetchMoviesFromServer() {
         FetchMovies fetchMovies = new FetchMovies(getActivity(), mSort);
         fetchMovies.execute();
-
-        if(mSort.equals(getString(R.string.pref_sort_popularity))){
-            mGotPopular = true;
-
-        }else if(mSort.equals(getString(R.string.pref_sort_highestRated))){
-            mGotRated = true;
-        }
     }
 
     public void setFragData(FragmentData iFragmentData){
@@ -207,10 +211,7 @@ public class MoviesFragment extends Fragment  implements LoaderManager.LoaderCal
         Uri moviesUri = null;
 
         switch (i){
-            case POPULAR_LOADER:
-                moviesUri = MoviesContract.MovieEntry.buildMovieWithSortUri(mSort);
-                break;
-            case RATED_LOADER:
+            case MOVIES_LOADER:
                 moviesUri = MoviesContract.MovieEntry.buildMovieWithSortUri(mSort);
                 break;
             case FAV_LOADER:
@@ -232,9 +233,10 @@ public class MoviesFragment extends Fragment  implements LoaderManager.LoaderCal
         mMoviesAdapter.swapCursor(cursor);
 
         if(mTwoPane) {
+            cursor.moveToFirst();
             if (cursor != null && (cursor.moveToFirst()) || cursor.getCount() >= 1) {
                 cursor.moveToPosition(0);
-                iFragmentData.updateData(cursor);
+                iFragmentData.updateData(cursor, mSort);
             }
         }
     }
@@ -246,5 +248,15 @@ public class MoviesFragment extends Fragment  implements LoaderManager.LoaderCal
 
     public void onSortChanged(){
         updateMovies();
+    }
+
+    public static <T> void initLoader(final int loaderId, final Bundle args, final LoaderManager.LoaderCallbacks<T> callbacks,
+                                      final LoaderManager loaderManager){
+        final Loader<T> loader = loaderManager.getLoader(loaderId);
+        if(loader != null){
+            loaderManager.restartLoader(loaderId, args, callbacks);
+        }else {
+            loaderManager.initLoader(loaderId, args, callbacks);
+        }
     }
 }
