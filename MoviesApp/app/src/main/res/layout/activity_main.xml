@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 xmlns:tools="http://schemas.android.com/tools"
-android:id="@+id/fragmentMovies"
-android:name="com.exoticdevs.Fragments.MoviesFragment"
-class="com.exoticdevs.Fragments.MoviesFragment"
-tools:layout="@layout/fragment_movies"
+    android:orientation="vertical"
 android:layout_width="match_parent"
 android:layout_height="match_parent"
-tools:context="com.exoticdevs.moviesapp.MainActivity"/>
+tools:context="com.exoticdevs.moviesapp.MainActivity">
 
-    <!--android:id="@+id/mainContainer"-->
+    <include layout="@layout/include_list_viewpager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+</LinearLayout>
+

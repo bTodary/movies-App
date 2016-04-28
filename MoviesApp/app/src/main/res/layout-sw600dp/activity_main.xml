@@ -15,6 +15,7 @@
         tools:layout="@layout/fragment_movies" />
 
     <!-- "Fragment details" -->
+
     <fragment class="com.exoticdevs.Fragments.DetailFragment"
         android:id="@+id/fragmentDetail"
         android:layout_width="0dp"

@@ -2,86 +2,27 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     tools:context="com.exoticdevs.Fragments.DetailFragment"
     android:background="@android:color/white">
 
-    <ScrollView
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        app:layout_scrollFlags="scroll|enterAlways|snap"
+        app:titleTextColor="@android:color/white"
+        app:titleTextAppearance="@style/ToolbarTitle"/>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Title"
-        android:textSize="@dimen/large_text_size"
-        android:textColor="@android:color/white"
-        android:padding="@dimen/large_padding"
-        android:textStyle="bold"
-        android:background="@color/darkGreen"
-        android:layout_weight="0.1"/>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_margin="@dimen/medium_margin"
-        android:layout_weight="1">
-    <ImageView
-        android:layout_width="140dp"
-        android:layout_height="180dp"
-        android:scaleType="centerCrop"
-        android:id="@+id/poster"
-        android:src="@mipmap/ic_launcher"/>
-
-    <LinearLayout
-        android:layout_width="match_parent"
+    <include layout="@layout/fragment_reviews"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:layout_marginLeft="@dimen/large_margin">
-        <TextView
-            android:id="@+id/releasedDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Release date"
-            android:textSize="@dimen/medium_text_size"
-            android:textStyle="bold"/>
-        <TextView
-            android:id="@+id/voteAverage"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0/10"
-            android:textSize="@dimen/normal_text_size"
-            android:layout_marginTop="@dimen/medium_margin"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Mark as&#10;favorite"
-            android:capitalize="characters"
-            android:textSize="@dimen/small_text_size"
-            android:textColor="@color/grey"
-            android:background="@color/lightGreen"
-            android:layout_marginTop="@dimen/medium_margin"
-            android:paddingLeft="@dimen/large_padding"
-            android:paddingRight="@dimen/large_padding"/>
-    </LinearLayout>
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/overview"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Overview"
-        android:textSize="@dimen/small_text_size"
-        android:layout_margin="@dimen/medium_margin"
-        android:layout_weight="1"/>
+        android:layout_marginBottom="@dimen/small_margin"
+        android:layout_marginLeft="@dimen/small_margin"
+        android:layout_marginRight="@dimen/small_margin"/>
 
         </LinearLayout>
-
-    </ScrollView>
-</LinearLayout>

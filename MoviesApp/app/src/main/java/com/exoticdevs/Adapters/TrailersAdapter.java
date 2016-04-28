@@ -7,27 +7,31 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.exoticdevs.Data.MoviesContract;
 import com.exoticdevs.Util.PicassoCache;
 import com.exoticdevs.moviesapp.R;
 
 /**
- * Created by mac on 3/23/16.
+ * Created by mac on 4/13/16.
  */
-public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.ViewHolder> {
-
-    private static final String LOG_TAG = MoviesAdapter.class.getSimpleName();
+public class TrailersAdapter  extends RecyclerView.Adapter<TrailersAdapter.ViewHolder> {
 
     private Cursor mCursor;
     final private Context mContext;
-    final private MoviestAdapterOnClickHandler mClickHandler;
+    final private TrailersAdapterOnClickHandler mClickHandler;
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
-        public ImageView mImg;
+        public final View mView;
+        public final ImageView mImageView;
+        public final TextView trailer_name;
+
         public ViewHolder(View itemView) {
             super(itemView);
-            mImg = (ImageView) itemView.findViewById(R.id.movie_image);
+            mView = itemView;
+            mImageView = (ImageView) itemView.findViewById(R.id.trailer_image);
+            trailer_name = (TextView) itemView.findViewById(R.id.trailer_name);
             itemView.setOnClickListener(this);
         }
 
@@ -39,37 +43,37 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.ViewHolder
         }
     }
 
-    public static interface MoviestAdapterOnClickHandler {
+    public static interface TrailersAdapterOnClickHandler {
         void onClick(Cursor cursor, ViewHolder vh);
     }
 
-    public MoviesAdapter(Context mContext, MoviestAdapterOnClickHandler mClickHandler) {
+    public TrailersAdapter(Context mContext, TrailersAdapterOnClickHandler mClickHandler) {
         this.mContext = mContext;
         this.mClickHandler = mClickHandler;
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.grid_item_movie, parent, false);
-        ViewHolder vh = new ViewHolder(itemView);
-        return vh;
+        View view = LayoutInflater.from(mContext).inflate(R.layout.trailer_item_movie, parent, false);
+        return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int position) {
 
         mCursor.moveToPosition(position);
+
+        String trailerPoster =
+                mCursor.getString(mCursor.getColumnIndex(MoviesContract.TrailerEntry.COLUMN_KEY));
+
+        String trailerTitle =
+                mCursor.getString(mCursor.getColumnIndex(MoviesContract.TrailerEntry.COLUMN_NAME));
+
         PicassoCache.getPicassoInstance(mContext)
-                .load("http://image.tmdb.org/t/p/w185" + convertCursorRowToUXFormat(mCursor))
-                .into(viewHolder.mImg);
-    }
+                .load("http://img.youtube.com/vi/" + trailerPoster + "/0.jpg")
+                .into(viewHolder.mImageView);
 
-    private String convertCursorRowToUXFormat(Cursor cursor) {
-         String moviePoster =
-                 cursor.getString(cursor.getColumnIndex(MoviesContract.FavEntry.COLUMN_POSTER));
-
-        return moviePoster;
+        viewHolder.trailer_name.setText(trailerTitle);
     }
 
 
@@ -87,5 +91,4 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.ViewHolder
     public Cursor getCursor() {
         return mCursor;
     }
-
 }
