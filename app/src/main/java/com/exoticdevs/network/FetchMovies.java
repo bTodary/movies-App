@@ -1,4 +1,4 @@
-package com.exoticdevs.model;
+package com.exoticdevs.network;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -7,6 +7,8 @@ import android.widget.Toast;
 
 import com.exoticdevs.data.MoviesContract;
 import com.exoticdevs.helper.MoviesApi;
+import com.exoticdevs.model.Movie;
+import com.exoticdevs.model.Movies;
 
 import java.util.ArrayList;
 import java.util.Vector;

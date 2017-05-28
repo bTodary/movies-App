@@ -24,7 +24,7 @@ import com.exoticdevs.helper.ConnectionDetector;
 import com.exoticdevs.helper.DeviceUtils;
 import com.exoticdevs.helper.FragmentData;
 import com.exoticdevs.helper.PreCachingGridLayoutManager;
-import com.exoticdevs.model.FetchMovies;
+import com.exoticdevs.network.FetchMovies;
 import com.exoticdevs.moviesapp.DetailActivity;
 import com.exoticdevs.moviesapp.R;
 

@@ -37,8 +37,8 @@ import com.exoticdevs.data.MoviesContract;
 import com.exoticdevs.helper.ConnectionDetector;
 import com.exoticdevs.helper.FragmentData;
 import com.exoticdevs.helper.PicassoCache;
-import com.exoticdevs.model.FetchMovieReviews;
-import com.exoticdevs.model.FetchMovieTrailers;
+import com.exoticdevs.network.FetchMovieReviews;
+import com.exoticdevs.network.FetchMovieTrailers;
 import com.exoticdevs.moviesapp.R;
 
 import butterknife.Bind;
